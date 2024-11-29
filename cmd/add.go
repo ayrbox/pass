@@ -4,11 +4,11 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"log"
-	"time"
 
 	"github.com/ayrbox/pass/db"
-	"github.com/ayrbox/pass/utils"
+	"github.com/nrednav/cuid2"
 	"github.com/spf13/cobra"
 )
 
@@ -24,16 +24,21 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		path, err := utils.SetupPath("pass_manager")
-		if err != nil {
-			log.Fatal(err)
-		}
-		pm, err := db.Init(path, "default.db")
+		pm, err := db.Open("default.db")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		_, error := pm.DB.Exec("INSERT INTO accounts(id, name, created, updated) VALUES(?, ?, ?, ?)", 2, "Hello DB", time.Now(), time.Now())
+		pm.Init()
+
+		acc := &db.Account{
+			Id:   cuid2.Generate(),
+			Name: "new name",
+		}
+
+		fmt.Printf("%v", *acc)
+
+		_, error := pm.AddAccount(acc)
 
 		if error != nil {
 			log.Fatal(error)

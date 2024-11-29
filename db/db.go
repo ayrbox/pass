@@ -2,6 +2,8 @@ package db
 
 import (
 	"database/sql"
+	"errors"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -13,33 +15,66 @@ type PassManager struct {
 	path string
 }
 
-func Init(path string, dbName string) (*PassManager, error) {
-	f := filepath.Join(path, dbName)
-	db, err := sql.Open("sqlite3", f)
+func getPath(dbName string) (string, error) {
+	if dbName == "" {
+		dbName = "default.db"
+	}
 
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	d := filepath.Join(homedir, ".pass")
+	if _, err := os.Stat(d); os.IsNotExist(err) {
+		err := os.Mkdir(d, 0700)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	path := filepath.Join(d, dbName)
+	return path, nil
+}
+
+func Open(dbName string) (*PassManager, error) {
+	dbPath, err := getPath(dbName)
+	if err != nil {
+		return nil, errors.New("Unable to open database.")
+	}
+
+	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, err
 	}
-
-	const createTables string = `
-		CREATE TABLE IF NOT EXISTS accounts (
-			id			INTEGER NOT NULL PRIMARY KEY,
-			name		TEXT NOT NULL,
-			created DATETIME NOT NULL,
-		  updated DATETIME NOT NULL
-		);`
-	if _, err := db.Exec(createTables); err != nil {
-		return nil, err
-	}
-
-	pm := PassManager{db, f}
-
+	pm := PassManager{db, dbPath}
 	return &pm, nil
 }
 
-func (pm *PassManager) addAccount(a *Account) (int, error) {
+func (pm *PassManager) Init() error {
+	const createTables string = `
+		CREATE TABLE IF NOT EXISTS accounts (
+			id			TEXT NOT NULL PRIMARY KEY,
+			name		TEXT NOT NULL,
+			created DATETIME NOT NULL,
+		  updated DATETIME NOT NULL
+		);
+
+		CREATE TABLE IF NOT EXISTS passwords (
+			accountId TEXT NOT NULL REFERENCES accounts(id),
+			pass TEXT NOT NULL,
+			created DATETIME NOT NULL
+		)
+		`
+	if _, err := pm.db.Exec(createTables); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pm *PassManager) AddAccount(a *Account) (int, error) {
 	const stmt string = "INSERT INTO accounts(id, name, created, updated) VALUES(?, ?, ?, ?)"
-	result, err := pm.db.Exec(stmt, 100, a.name, time.Now(), time.Now())
+	result, err := pm.db.Exec(stmt, a.Id, a.Name, time.Now(), time.Now())
 
 	if err != nil {
 		return 0, err
@@ -51,8 +86,7 @@ func (pm *PassManager) addAccount(a *Account) (int, error) {
 	return int(lastId), nil
 }
 
-func (pm *PassManager) generatePassword(a *Account) (bool, error) {
-
+func (pm *PassManager) GeneratePassword(a *Account) (bool, error) {
 	const stmt string = "INSERT INTO password(account_id, password, created) VALUES (?, ?, ?)"
 	_, err := pm.db.Exec(stmt, 100, "newpassword", time.Now())
 

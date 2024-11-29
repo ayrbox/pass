@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"github.com/ayrbox/pass/db"
-	"github.com/ayrbox/pass/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -17,14 +16,14 @@ var initCmd = &cobra.Command{
 	Short: "Initialise password manager.",
 	Long:  `Creates password manager sqlite database in specified location or default location`,
 	Run: func(cmd *cobra.Command, args []string) {
-		path, err := utils.SetupPath("pass_manager")
+		pm, err := db.Open("default.db")
 		if err != nil {
 			log.Fatal(err)
 		}
-		if _, err := db.Init(path, "default.db"); err != nil {
+
+		if err := pm.Init(); err != nil {
 			log.Fatal(err)
 		}
-
 	},
 }
 
