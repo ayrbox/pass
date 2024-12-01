@@ -28,7 +28,7 @@ func parseArgs(args []string) (string, string) {
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:   "add [account_name]",
+	Use:   "add [account_name] [username]",
 	Short: "Add account name",
 	Long: `Add new account in password manager. 
 Account is name of the account that you can remember.

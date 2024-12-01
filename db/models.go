@@ -7,5 +7,5 @@ type Account struct {
 	Name     string
 	Username string
 	Created  time.Time
-	Update   time.Time
+	Updated  time.Time
 }

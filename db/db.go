@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -87,13 +88,32 @@ func (pm *PassManager) AddAccount(a *Account) (int, error) {
 	return int(lastId), nil
 }
 
-func (pm *PassManager) GeneratePassword(a *Account) (bool, error) {
-	const stmt string = "INSERT INTO password(account_id, password, created) VALUES (?, ?, ?)"
-	_, err := pm.db.Exec(stmt, 100, "newpassword", time.Now())
+func (pm *PassManager) GetAccountByName(name string) (Account, error) {
+	const stmt string = "SELECT * FROM accounts WHERE name = ?"
+
+	var account Account
+	if err := pm.db.QueryRow(stmt, name).Scan(
+		&account.Id,
+		&account.Name,
+		&account.Username,
+		&account.Created,
+		&account.Updated,
+	); err != nil {
+		log.Fatal(err)
+	}
+	return account, nil
+}
+
+func (pm *PassManager) GeneratePassword(a *Account) error {
+	const stmt string = "INSERT INTO passwords(accountId, pass, created) VALUES (?, ?, ?)"
+
+	password := "new_generated_password_here"
+
+	_, err := pm.db.Exec(stmt, 100, password, time.Now())
 
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
