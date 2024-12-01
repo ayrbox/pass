@@ -53,17 +53,18 @@ func Open(dbName string) (*PassManager, error) {
 func (pm *PassManager) Init() error {
 	const createTables string = `
 		CREATE TABLE IF NOT EXISTS accounts (
-			id			TEXT NOT NULL PRIMARY KEY,
-			name		TEXT NOT NULL,
-			created DATETIME NOT NULL,
-		  updated DATETIME NOT NULL
+			id				TEXT NOT NULL PRIMARY KEY,
+			name			TEXT NOT NULL UNIQUE,
+			username	TEXT NULL,
+			created		DATETIME NOT NULL,
+		  updated		DATETIME NOT NULL
 		);
 
 		CREATE TABLE IF NOT EXISTS passwords (
 			accountId TEXT NOT NULL REFERENCES accounts(id),
-			pass TEXT NOT NULL,
-			created DATETIME NOT NULL
-		)
+			pass			TEXT NOT NULL,
+			created		DATETIME NOT NULL
+		);
 		`
 	if _, err := pm.db.Exec(createTables); err != nil {
 		return err
@@ -73,8 +74,8 @@ func (pm *PassManager) Init() error {
 }
 
 func (pm *PassManager) AddAccount(a *Account) (int, error) {
-	const stmt string = "INSERT INTO accounts(id, name, created, updated) VALUES(?, ?, ?, ?)"
-	result, err := pm.db.Exec(stmt, a.Id, a.Name, time.Now(), time.Now())
+	const stmt string = "INSERT INTO accounts(id, name, username, created, updated) VALUES(?, ?, ?, ?, ?)"
+	result, err := pm.db.Exec(stmt, a.Id, a.Name, a.Username, time.Now(), time.Now())
 
 	if err != nil {
 		return 0, err
