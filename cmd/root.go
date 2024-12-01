@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var dbName string
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "pass",
@@ -34,5 +36,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("dbName", "d", "default.db", "Folder path to create sqlite database")
+	rootCmd.PersistentFlags().StringVarP(&dbName, "dbName", "d", "default.db", "Folder path to create sqlite database")
 }

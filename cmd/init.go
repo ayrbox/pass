@@ -18,8 +18,6 @@ var initCmd = &cobra.Command{
 	Long:  `Creates password manager database in users home directory`,
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		dbName, _ := cmd.Flags().GetString("dbName")
-
 		pm, err := db.Open(dbName)
 		if err != nil {
 			log.Fatal(err)
