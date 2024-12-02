@@ -22,8 +22,8 @@ var genCmd = &cobra.Command{
 
 		account, _ := pm.GetAccountByName(args[0])
 
+		// TODO: confirm using pterm before actually updating
 		err = pm.GeneratePassword(&account)
-
 		if err != nil {
 			return err
 		}

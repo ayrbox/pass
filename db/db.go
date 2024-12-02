@@ -93,6 +93,24 @@ func (pm *PassManager) AddAccount(a *Account) (int, error) {
 	return int(lastId), nil
 }
 
+func (pm *PassManager) UpdateAccountName(a *Account, newAccountName string) error {
+	const stmt string = "UPDATE accounts SET name = ? WHERE id = ?"
+	_, err := pm.db.Exec(stmt, newAccountName, a.Id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pm *PassManager) UpdateUsername(a *Account, newUsername string) error {
+	const stmt string = "UPDATE accounts SET username = ? WHERE id = ?"
+	_, err := pm.db.Exec(stmt, newUsername, a.Id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (pm *PassManager) GetAccountByName(name string) (Account, error) {
 	const stmt string = "SELECT * FROM accounts WHERE name = ?"
 
@@ -107,6 +125,28 @@ func (pm *PassManager) GetAccountByName(name string) (Account, error) {
 		log.Fatal(err)
 	}
 	return account, nil
+}
+
+func (pm *PassManager) UpdatePassword(a *Account, newPassword string) error {
+	// TODO: use db transacation
+	// TODO: generate random password with option of symbol and numbers
+
+	// archive existing passwords
+	const update_stmt string = "UPDATE passwords SET archived = ? WHERE accountId = ? AND archived IS NULL"
+	_, err := pm.db.Exec(update_stmt, time.Now(), a.Id)
+	if err != nil {
+		return err
+	}
+
+	// insert new password
+	const stmt string = "INSERT INTO passwords(accountId, pass, created) VALUES (?, ?, ?)"
+	_, err = pm.db.Exec(stmt, a.Id, newPassword, time.Now())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (pm *PassManager) GeneratePassword(a *Account) error {
