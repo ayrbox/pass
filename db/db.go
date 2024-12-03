@@ -173,3 +173,26 @@ func (pm *PassManager) GeneratePassword(a *Account) error {
 
 	return nil
 }
+
+func (pm *PassManager) GetAccounts() ([]Account, error) {
+	var accounts []Account
+
+	const stmt string = "SELECT * FROM accounts"
+	result, err := pm.db.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	var account Account
+	for result.Next() {
+		result.Scan(
+			&account.Id,
+			&account.Name,
+			&account.Username,
+			&account.Created,
+			&account.Updated,
+		)
+		accounts = append(accounts, account)
+	}
+	return accounts, nil
+}
