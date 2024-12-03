@@ -151,19 +151,20 @@ func (pm *PassManager) UpdatePassword(a *Account, newPassword string) error {
 
 func (pm *PassManager) GeneratePassword(a *Account) error {
 	// TODO: use db transacation
-	// TODO: generate random password with option of symbol and numbers
-	password := "new_generated_password_here"
+	password, err := generatePassword(20, true, true)
+	if err != nil {
+		return err
+	}
 
 	// archive existing passwords
 	const update_stmt string = "UPDATE passwords SET archived = ? WHERE accountId = ? AND archived IS NULL"
-	_, err := pm.db.Exec(update_stmt, time.Now(), a.Id)
+	_, err = pm.db.Exec(update_stmt, time.Now(), a.Id)
 	if err != nil {
 		return err
 	}
 
 	// insert new password
 	const stmt string = "INSERT INTO passwords(accountId, pass, created) VALUES (?, ?, ?)"
-
 	_, err = pm.db.Exec(stmt, a.Id, password, time.Now())
 
 	if err != nil {

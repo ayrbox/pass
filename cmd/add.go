@@ -4,7 +4,9 @@ Copyright © 2024 ayrbox <sabin.dangol@hotmail.com>
 package cmd
 
 import (
+	"crypto/sha1"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/ayrbox/pass/db"
@@ -41,9 +43,14 @@ For example, "gmail" is account with username and password`,
 			log.Fatal(err)
 		}
 
+		cuid := cuid2.Generate()
+
+		hash := sha1.Sum([]byte(cuid))
+		hashId := fmt.Sprintf("%x", hash)
+
 		name, username := parseArgs(args)
 		acc := &db.Account{
-			Id:       cuid2.Generate(),
+			Id:       hashId,
 			Name:     name,
 			Username: username,
 		}
