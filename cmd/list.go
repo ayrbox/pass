@@ -29,7 +29,6 @@ var listCmd = &cobra.Command{
 		}
 
 		pterm.DefaultTable.WithHasHeader().WithData(accountData).Render()
-
 		return nil
 	},
 }

@@ -127,6 +127,16 @@ func (pm *PassManager) GetAccountByName(name string) (Account, error) {
 	return account, nil
 }
 
+func (pm *PassManager) GetPassword(a *Account) (string, error) {
+	const stmt_get_password = "SELECT pass FROM passwords WHERE accountId = ? AND archived IS NULL"
+
+	var password string
+	if err := pm.db.QueryRow(stmt_get_password, a.Id).Scan(&password); err != nil {
+		return "", fmt.Errorf("Unable to get password\n %v", err)
+	}
+	return password, nil
+}
+
 func (pm *PassManager) UpdatePassword(a *Account, newPassword string) error {
 	// TODO: use db transacation
 	// TODO: generate random password with option of symbol and numbers
